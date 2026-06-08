@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kunci Realty Apartment Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy-deep: #0a1530;
+    --navy-mid: #0f1e44;
+    --navy-card: #14264d;
+    --navy-line: #1f3567;
+    --yellow: #FFC72C;
+    --yellow-soft: #FFE082;
+    --cyan: #22D3EE;
+    --cyan-soft: #67E8F9;
+    --white: #F8FAFC;
+    --grey: #94A3B8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--navy-deep);
+    background-image:
+      radial-gradient(ellipse at top left, rgba(34,211,238,0.08), transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(255,199,44,0.06), transparent 50%);
+    color: var(--white);
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 48px 24px 80px;
+  }
+  .container { max-width: 1280px; margin: 0 auto; }
+
+  /* Header */
+  header { margin-bottom: 48px; border-bottom: 1px solid var(--navy-line); padding-bottom: 32px; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: clamp(36px, 6vw, 72px);
+    line-height: 1.05;
+    color: var(--yellow);
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  h1 .accent { font-style: italic; font-weight: 500; color: var(--yellow-soft); }
+  .subtitle { color: var(--cyan-soft); font-size: 15px; max-width: 620px; }
+  .meta-row {
+    display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--grey); letter-spacing: 0.1em;
+  }
+  .meta-row span strong { color: var(--white); font-weight: 500; }
+
+  /* Filters */
+  .filters {
+    background: var(--navy-mid);
+    border: 1px solid var(--navy-line);
+    border-radius: 4px;
+    padding: 24px;
+    margin-bottom: 32px;
+  }
+  .filter-group { margin-bottom: 20px; }
+  .filter-group:last-child { margin-bottom: 0; }
+  .filter-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--yellow);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .filter-label::before { content: ''; width: 12px; height: 1px; background: var(--yellow); }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    background: transparent;
+    border: 1px solid var(--navy-line);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    padding: 8px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--cyan); color: var(--cyan); }
+  .chip.active { background: var(--cyan); color: var(--navy-deep); border-color: var(--cyan); font-weight: 600; }
+  .chip.active-yellow { background: var(--yellow); color: var(--navy-deep); border-color: var(--yellow); font-weight: 600; }
+
+  /* Search */
+  .search-row {
+    display: flex; gap: 12px; align-items: stretch;
+    margin-bottom: 20px;
+  }
+  .search-input {
+    flex: 1;
+    background: var(--navy-deep);
+    border: 1px solid var(--navy-line);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { outline: none; border-color: var(--cyan); }
+  .search-input::placeholder { color: var(--grey); }
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--yellow);
+    color: var(--yellow);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    padding: 0 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .reset-btn:hover { background: var(--yellow); color: var(--navy-deep); }
+
+  /* Results count */
+  .results-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--grey);
+    letter-spacing: 0.1em;
+  }
+  .results-bar .count { color: var(--cyan); }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-line);
+    border-radius: 6px;
+    padding: 28px;
+    display: flex; flex-direction: column;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--yellow);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .card:hover { border-color: var(--cyan); transform: translateY(-2px); }
+  .card:hover::before { transform: scaleX(1); }
+
+  .card-area {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .card-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 26px;
+    line-height: 1.15;
+    color: var(--yellow);
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .card-developer {
+    font-size: 12px;
+    color: var(--cyan-soft);
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+  .card-section { margin-bottom: 16px; }
+  .card-section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--yellow);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .card-section-value {
+    font-size: 13px;
+    color: var(--white);
+    line-height: 1.5;
+  }
+  .card-section-value strong { color: var(--cyan-soft); font-weight: 500; }
+
+  .selling-points {
+    border-top: 1px dashed var(--navy-line);
+    padding-top: 16px;
+    margin-top: auto;
+  }
+  .sp-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--yellow);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .sp-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sp-tag {
+    font-size: 11px;
+    background: rgba(34,211,238,0.1);
+    color: var(--cyan);
+    padding: 4px 10px;
+    border-radius: 100px;
+    border: 1px solid rgba(34,211,238,0.25);
+  }
+
+  .empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--grey);
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 20px;
+  }
+
+  footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--navy-line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--grey);
+    letter-spacing: 0.1em;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  footer .seal { color: var(--yellow); }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; }
+    .grid { grid-template-columns: 1fr; }
+    .card { padding: 22px; }
+    .search-row { flex-direction: column; }
+    .reset-btn { padding: 12px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="eyebrow">Kunci Realty · Internal Reference</div>
+    <h1>Apartment <span class="accent">Database</span></h1>
+    <p class="subtitle">A curated index of premium and ultra-luxury apartment complexes across Jakarta — filterable by area, complex, and selling point profile.</p>
+    <div class="meta-row">
+      <span><strong id="totalCount">20</strong> COMPLEXES</span>
+      <span><strong id="areaCount">11</strong> AREAS</span>
+      <span><strong>v1.0</strong> · 2026</span>
+    </div>
+  </header>
+
+  <section class="filters">
+    <div class="search-row">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search by complex name, developer, or keyword…" />
+      <button class="reset-btn" id="resetBtn">Reset Filters</button>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Area</div>
+      <div class="chip-row" id="areaChips"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">Selling Point Profile</div>
+      <div class="chip-row" id="spChips"></div>
+    </div>
+  </section>
+
+  <div class="results-bar">
+    <div>SHOWING <span class="count" id="showingCount">20</span> / 20 COMPLEXES</div>
+    <div id="activeFiltersLabel">NO ACTIVE FILTERS</div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    <div>KUNCI REALTY · <span class="seal">KUNCI PROPERTI TERBAIK ANDA</span></div>
+    <div>JAKARTA · INTERNAL TOOL</div>
+  </footer>
+</div>
+
+<script>
+const data = [
+  {
+    name: "Anandamaya Residences",
+    area: "Sudirman",
+    developer: "Astra Land · Hongkong Land · Sinar Mas Land",
+    location: "Jl. Jenderal Sudirman, Karet Tengsin",
+    towers: "3 Towers (Vasaka, Vimala, Vasanta)",
+    priceRange: "IDR 8 M – 25 M+ (2BR–4BR, ±113–319 m²)",
+    targetBuyer: "Executive families, expat C-suite, SCBD-Sudirman professionals seeking landed-feel at altitude",
+    sellingPoints: ["Branded Residence", "CBD Walk-to-Work", "Family-Oriented", "Ultra-Luxury", "Resort-Style"],
+    spDetail: "Tropical Modernist tower trio facing the Sudirman corridor — designed by Denton Corker Marshall. Sky bridges between towers, low-density layout (only 8 units/floor in Vasaka), and Hongkong Land's hotel-grade build quality. The Jakarta benchmark for 'family ultra-luxury in CBD'."
+  },
+  {
+    name: "Botanica",
+    area: "Simprug",
+    developer: "Sinar Mas Land",
+    location: "Jl. Teuku Nyak Arief, Simprug",
+    towers: "3 Towers (Bromelia, Magnolia, Camelia)",
+    priceRange: "IDR 6 M – 14 M (2BR–3+1BR, ±127–253 m²)",
+    targetBuyer: "Established South Jakarta families, downsizers from landed homes in Pondok Indah/Kebayoran, school-driven parents (JIS access)",
+    sellingPoints: ["Family-Oriented", "Old Money", "Low Density", "Resort-Style", "Pet Friendly"],
+    spDetail: "The 'quiet luxury' choice — surrounded by lush mature landscaping designed by Bensley. Olympic pool, jogging path through botanical garden, premium build with marble lobbies. Strategic Simprug location: 5 min to JIS, 10 min to Senayan, flood-free."
+  },
+  {
+    name: "Ciputra World Jakarta I & II",
+    area: "Kuningan",
+    developer: "Ciputra Group",
+    location: "Jl. Prof. Dr. Satrio, Karet Kuningan",
+    towers: "CWJ I: The Residences (Orchard, MyHome) · CWJ II: The Newton 1 & 2",
+    priceRange: "Studio – 3BR · IDR 1.3 M – 8 M+ (entry tier to premium tier)",
+    targetBuyer: "Young professionals, first-time CBD buyers, investors targeting expat/office-worker rental yield",
+    sellingPoints: ["CBD Walk-to-Work", "Mall-Integrated", "Investment / High Yield", "Branded Residence"],
+    spDetail: "Two superblocks anchoring the Satrio-Kuningan retail corridor. Direct access to Lotte Avenue Mall, Ciputra Artpreneur, and walking distance to Tokopedia Tower, DBS, Standard Chartered. High rental occupancy. Entry tier (The Newton) is the most affordable serious-tier CBD product in the market."
+  },
+  {
+    name: "Senopati Suites",
+    area: "Senopati / SCBD",
+    developer: "Farpoint Realty",
+    location: "Jl. Senopati, Kebayoran Baru",
+    towers: "Senopati Suites Phase 1 & Phase 2",
+    priceRange: "IDR 5 M – 18 M (1BR–4BR, ±66–280 m²)",
+    targetBuyer: "F&B-scene professionals, creative directors, mid-career bankers who want SCBD adjacency without the SCBD price",
+    sellingPoints: ["CBD Walk-to-Work", "Investment / High Yield", "Low Density"],
+    spDetail: "Walking distance to the entire Senopati F&B strip and a 5-min drive to SCBD. Farpoint's signature build quality (same developer as Verde Two). Phase 2 features fully serviced unit options. One of the few apartments where you can walk to Union, Lucy, and Cork & Screw."
+  },
+  {
+    name: "Dharmawangsa Residence",
+    area: "Dharmawangsa",
+    developer: "Bangun Tjipta Sarana",
+    location: "Jl. Brawijaya Raya, Dharmawangsa",
+    towers: "2 Towers connected to The Dharmawangsa Hotel",
+    priceRange: "IDR 12 M – 30 M+ (2BR–4BR, ±150–350 m²)",
+    targetBuyer: "Old-money families from Kebayoran/Dharmawangsa, diplomats, expat families with SIS/JIS school priority",
+    sellingPoints: ["Old Money", "Branded Residence", "Ultra-Luxury", "Low Density"],
+    spDetail: "The classic 'Old Jakarta' luxury. Integrated with The Dharmawangsa Hotel — residents get hotel concierge, spa, and restaurant privileges. Surrounded by embassies and the most established residential pocket in Jakarta. Quiet, leafy, low-rise — closer to Mayfair than to Manhattan."
+  },
+  {
+    name: "District 8",
+    area: "SCBD",
+    developer: "Agung Sedayu Group",
+    location: "SCBD Lot 28, Senayan",
+    towers: "3 Towers (Eternity, Infinity, Treasury)",
+    priceRange: "IDR 4 M – 25 M+ (Studio–4BR, ±35–400 m²)",
+    targetBuyer: "SCBD bankers, consultants, tech executives, investors targeting the highest CBD rental yield in Jakarta",
+    sellingPoints: ["CBD Walk-to-Work", "Investment / High Yield", "Mall-Integrated", "Ultra-Luxury"],
+    spDetail: "Literally inside SCBD — walk to Pacific Place, walk to every Grade A tower. Treasury Tower (Indonesia's 2nd tallest) sits in the same complex. Highest occupancy rate of any apartment in SCBD. Eternity is the entry tier, Treasury is the prestige play. The default answer when an expat asks 'where do I live near the office'."
+  },
+  {
+    name: "Four Seasons Private Residences",
+    area: "Gatot Subroto",
+    developer: "Ciputra Group (Capital Place)",
+    location: "Jl. Jenderal Gatot Subroto Kav. 18",
+    towers: "1 Branded Residential Tower within Capital Place",
+    priceRange: "IDR 20 M – 60 M+ (2BR–4BR, ±170–500 m²)",
+    targetBuyer: "Conglomerate families, super-HNWI, brand-buyers seeking the Four Seasons service standard as a permanent home",
+    sellingPoints: ["Branded Residence", "Ultra-Luxury", "Old Money", "Low Density"],
+    spDetail: "Indonesia's only Four Seasons-branded residence. Service is the actual product: 24/7 in-residence dining, housekeeping, butler, valet — all to Four Seasons hotel standard. Integrated with Capital Place's Grade A office tower and the Four Seasons Hotel. The 'forever home' tier."
+  },
+  {
+    name: "Gandaria Heights",
+    area: "Gandaria",
+    developer: "Agung Podomoro Land",
+    location: "Jl. Sultan Iskandar Muda, Kebayoran Lama",
+    towers: "3 Towers (Asoka, Bromelia, Cattleya)",
+    priceRange: "IDR 2.5 M – 7 M (Studio–3BR, ±36–158 m²)",
+    targetBuyer: "Young families, first-time buyers from South Jakarta suburbs, professionals working along the TB Simatupang corridor",
+    sellingPoints: ["Mall-Integrated", "Family-Oriented", "Investment / High Yield"],
+    spDetail: "Direct internal access to Gandaria City Mall — the largest mall in the Gandaria/Kebayoran area. Strong rental demand from young families wanting mall lifestyle without buying landed. Affordable entry into a serious South Jakarta address."
+  },
+  {
+    name: "South Hills",
+    area: "Kuningan",
+    developer: "Intiland",
+    location: "Jl. Karet Pedurenan, Setiabudi",
+    towers: "3 Towers (North, South, West)",
+    priceRange: "IDR 4 M – 9 M (1BR–3BR, ±67–166 m²)",
+    targetBuyer: "Kuningan-Sudirman office workers, dual-income couples, executive bachelors",
+    sellingPoints: ["CBD Walk-to-Work", "Investment / High Yield", "Resort-Style"],
+    spDetail: "Intiland's resort-styled tower trio at the quiet end of Kuningan. Multi-tiered pool deck (the standout amenity — feels like a Bali villa). 7-min drive to SCBD, 5-min walk to Mega Kuningan. Strong rental yield from MNC tenants."
+  },
+  {
+    name: "Kempinski Private Residences",
+    area: "Thamrin",
+    developer: "PT Grand Indonesia (Djarum Group)",
+    location: "Jl. M.H. Thamrin No. 1 (Grand Indonesia complex)",
+    towers: "1 Residential Tower above Hotel Indonesia Kempinski",
+    priceRange: "IDR 15 M – 40 M+ (1BR–4BR, ±100–400 m²)",
+    targetBuyer: "MNC C-suite, sovereign-wealth-fund relocators, brand-driven HNWI who want Bundaran HI views as a daily backdrop",
+    sellingPoints: ["Branded Residence", "Ultra-Luxury", "Mall-Integrated", "CBD Walk-to-Work"],
+    spDetail: "The original branded residence in Jakarta. Direct access to Grand Indonesia Mall + Hotel Indonesia Kempinski. The address is the asset — 'Jalan Thamrin No. 1' is the most iconic postal address in Indonesia. Old-school luxury, irreplaceable location."
+  },
+  {
+    name: "Pacific Place Residences",
+    area: "SCBD",
+    developer: "Pakuwon Group",
+    location: "Pacific Place, SCBD Lot 3-5",
+    towers: "1 Residential Tower",
+    priceRange: "IDR 15 M – 50 M+ (2BR–4BR, ±150–500 m²)",
+    targetBuyer: "Top-tier SCBD executives, embassy-adjacent expats, HNWI who treat Pacific Place Mall as a personal lounge",
+    sellingPoints: ["Branded Residence", "Ultra-Luxury", "Mall-Integrated", "CBD Walk-to-Work"],
+    spDetail: "Sits atop Pacific Place Mall — the luxury mall (Hermès, Louis Vuitton, Chanel) of Jakarta. Integrated with The Ritz-Carlton Jakarta. Residents access SCBD offices via covered walkways. The address that combines CBD utility with hotel-grade service."
+  },
+  {
+    name: "Pakubuwono Menteng",
+    area: "Menteng",
+    developer: "The Pakubuwono Development",
+    location: "Jl. HOS Cokroaminoto, Menteng",
+    towers: "1 Boutique Tower (limited units)",
+    priceRange: "IDR 25 M – 60 M+ (3BR–4BR, ±200–450 m²)",
+    targetBuyer: "Old-money Menteng families, political-class buyers, conglomerate heirs who want apartment-living without leaving the Menteng ecosystem",
+    sellingPoints: ["Old Money", "Ultra-Luxury", "Low Density", "Branded Residence"],
+    spDetail: "The Pakubuwono brand applied to the Menteng address. Boutique scale (very few units), bespoke layouts, white-glove maintenance for which Pakubuwono is famous. The buyer profile here overlaps almost entirely with Menteng landed-house owners trading down for security and zero maintenance."
+  },
+  {
+    name: "Pakubuwono Spring",
+    area: "Simprug",
+    developer: "The Pakubuwono Development (Simprug Arteri Realty)",
+    location: "Jl. Teuku Nyak Arief, Kebayoran Lama (Simprug)",
+    towers: "2 Towers (Apple & Cherry) · ±1.9 Hectares",
+    priceRange: "IDR 5.5 M – 15 M+ (2BR–4BR combined–Junior Penthouse)",
+    targetBuyer: "Pakubuwono brand loyalists, families wanting Simprug schools, wellness-driven HNWI",
+    sellingPoints: ["Family-Oriented", "Low Density", "Resort-Style", "Branded Residence", "Wellness"],
+    spDetail: "The only high-end apartment in Jakarta with authentic Japanese-style Onsen (indoor + outdoor) and Zen gardens. Pakubuwono's legendary build quality and maintenance in a more modern, compact format. 100% residential — no mall underneath. Strategic Simprug location, flood-free."
+  },
+  {
+    name: "Verde Two",
+    area: "Kuningan",
+    developer: "Farpoint (Gunung Sewu Group)",
+    location: "Jl. Kuningan Mulia, Setiabudi (the 'quiet' side of Kuningan)",
+    towers: "2 Towers (Monteverde ultra-luxury + Terraverde lifestyle) · ±312 units on 8,600 m²",
+    priceRange: "2BR ±177–187 m² · 3BR ±211–230 m² · 4BR ±460 m² (Monteverde combine ~IDR 31 M furnished)",
+    targetBuyer: "Young couples, families with kids, pet lovers, design-driven HNWI",
+    sellingPoints: ["Ultra-Luxury", "Pet Friendly", "Resort-Style", "Wellness", "Family-Oriented"],
+    spDetail: "Indonesia's first apartment with centralized Double Air Filtration (Monteverde) — filters 99% of PM 2.5. Yabu Pushelberg interiors that read like a 6-star NYC boutique hotel. Pet-friendly with sensory garden. 6,000 m² of resort-style amenities. 5 min to Kota Kasablanka, 10 min to Mega Kuningan."
+  },
+  {
+    name: "Permata Hijau Residence",
+    area: "Permata Hijau",
+    developer: "Gapura Prima Group",
+    location: "Jl. Arteri Permata Hijau, Kebayoran Lama",
+    towers: "Multiple towers (Permata Hijau Suites · Residence · Gardens)",
+    priceRange: "IDR 3 M – 8 M (1BR–3BR, ±50–180 m²)",
+    targetBuyer: "Permata Hijau natives, JIS/Mentari School parents, mid-tier executives wanting Senayan/SCBD adjacency",
+    sellingPoints: ["Family-Oriented", "Investment / High Yield", "Mall-Integrated"],
+    spDetail: "The Permata Hijau cluster — Permata Hijau Suites/Residence/Gardens are sister projects. Integrated retail (Neo Soho-adjacent via Slipi access). Good entry point into the Permata Hijau ecosystem, which has its own self-contained F&B and school infrastructure."
+  },
+  {
+    name: "Pondok Indah Residence",
+    area: "Pondok Indah",
+    developer: "Pondok Indah Group (Metropolitan Kentjana)",
+    location: "Jl. Metro Pondok Indah",
+    towers: "3 Towers (Maya, Amala, Tirta)",
+    priceRange: "IDR 6 M – 18 M (1BR–4BR, ±84–270 m²)",
+    targetBuyer: "Pondok Indah landed-home families trading down, JIS parents, established South Jakarta professionals",
+    sellingPoints: ["Family-Oriented", "Mall-Integrated", "Resort-Style", "Old Money"],
+    spDetail: "The first serious apartment product in Pondok Indah — Maya, Amala, Tirta arranged around a podium with direct access to Pondok Indah Mall and Street Gallery. The default 'apartment option' for Pondok Indah natives. Strong owner-occupier mix (not just investors)."
+  },
+  {
+    name: "Raffles Residences",
+    area: "Kuningan",
+    developer: "Ciputra Group",
+    location: "Ciputra World 1, Jl. Prof. Dr. Satrio",
+    towers: "1 Branded Residential Tower (above Raffles Hotel Jakarta)",
+    priceRange: "IDR 25 M – 70 M+ (2BR–4BR + Penthouse, ±160–600 m²)",
+    targetBuyer: "Ultra-HNWI, conglomerate families, brand-loyal buyers who choose Raffles for the Singapore lineage",
+    sellingPoints: ["Branded Residence", "Ultra-Luxury", "Old Money", "Mall-Integrated"],
+    spDetail: "Branded by Raffles Hotels & Resorts — same lineage as Raffles Singapore. Integrated with Raffles Hotel Jakarta and Lotte Avenue Mall. Famous for the 'walk-through art gallery' lobby (Ciputra Artpreneur). Hotel-grade butler service for residents. The most explicitly 'old-world luxury' address in Kuningan."
+  },
+  {
+    name: "Regent Residences",
+    area: "Gatot Subroto",
+    developer: "KG Global Developments (with Regent Hotels & Resorts)",
+    location: "Mangkuluhur City, ±4 hectares (near SCBD & Sudirman)",
+    towers: "1–2 Residence Towers above hotel floors (mixed-use)",
+    priceRange: "3BR ±251 m² from IDR 17.5 M+ · 4BR/Penthouse ±506 m² IDR 30 M+",
+    targetBuyer: "Ultra-elite (old money / new money), conglomerate family members, expat branded-residence loyalists, second/third-home buyers",
+    sellingPoints: ["Branded Residence", "Ultra-Luxury", "CBD Walk-to-Work", "Low Density"],
+    spDetail: "Ultra-luxury branded living in Mangkuluhur City — one of Jakarta's premium pockets, near SCBD & Sudirman. Hotel-residence integration: concierge, lifestyle services, potential private chef/butler. Panoramic Jakarta skyline views from upper floors. 24-hour concierge & doorman, private lift, dedicated parking."
+  },
+  {
+    name: "Verde One",
+    area: "Kuningan",
+    developer: "Farpoint (Gunung Sewu Group)",
+    location: "Jl. Karet Pedurenan, Setiabudi",
+    towers: "2 Towers (Verde 1 & 2 of the original Verde complex)",
+    priceRange: "IDR 4 M – 12 M (2BR–3BR, ±126–230 m²)",
+    targetBuyer: "Established Kuningan residents, secondary-market buyers (most units now resale), value-driven luxury hunters",
+    sellingPoints: ["Pet Friendly", "Resort-Style", "Low Density", "CBD Walk-to-Work"],
+    spDetail: "The original Verde complex — predecessor to Verde Two. Resort-style amenities, mature landscaping (because the building has aged into its gardens). Stronger secondary market today than primary. Bought correctly, the best value-per-m² in the Kuningan luxury tier."
+  },
+  {
+    name: "Senayan Residence",
+    area: "Senayan",
+    developer: "Senayan Trikarya Sempana (Agung Podomoro / Putri Group)",
+    location: "Jl. Asia Afrika, Senayan",
+    towers: "3 Towers",
+    priceRange: "IDR 6 M – 18 M (2BR–4BR, ±115–280 m²)",
+    targetBuyer: "Senayan natives, GBK-area professionals, families wanting Plaza Senayan/Senayan City lifestyle on foot",
+    sellingPoints: ["Mall-Integrated", "Family-Oriented", "Old Money", "CBD Walk-to-Work"],
+    spDetail: "The original Senayan luxury tower complex. Walking distance to Plaza Senayan, Senayan City, and Senayan Square. Established residential community — strong owner-occupier ratio. Direct access to FX Sudirman side via internal roads. The 'Senayan address without GBK traffic' option."
+  }
+];
+
+const allAreas = [...new Set(data.map(d => d.area))].sort();
+const allSPs = [...new Set(data.flatMap(d => d.sellingPoints))].sort();
+
+let activeAreas = new Set();
+let activeSPs = new Set();
+let searchTerm = "";
+
+const areaChips = document.getElementById('areaChips');
+const spChips = document.getElementById('spChips');
+const grid = document.getElementById('grid');
+const showingCount = document.getElementById('showingCount');
+const activeFiltersLabel = document.getElementById('activeFiltersLabel');
+const searchInput = document.getElementById('searchInput');
+const resetBtn = document.getElementById('resetBtn');
+
+function makeChip(label, set, colorClass) {
+  const btn = document.createElement('button');
+  btn.className = 'chip';
+  btn.textContent = label;
+  btn.onclick = () => {
+    if (set.has(label)) { set.delete(label); btn.classList.remove('active', 'active-yellow'); }
+    else { set.add(label); btn.classList.add(colorClass); }
+    render();
+  };
+  return btn;
+}
+allAreas.forEach(a => areaChips.appendChild(makeChip(a, activeAreas, 'active')));
+allSPs.forEach(s => spChips.appendChild(makeChip(s, activeSPs, 'active-yellow')));
+
+searchInput.oninput = e => { searchTerm = e.target.value.toLowerCase().trim(); render(); };
+resetBtn.onclick = () => {
+  activeAreas.clear(); activeSPs.clear(); searchTerm = "";
+  searchInput.value = "";
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active', 'active-yellow'));
+  render();
+};
+
+function render() {
+  const filtered = data.filter(d => {
+    if (activeAreas.size && !activeAreas.has(d.area)) return false;
+    if (activeSPs.size && !d.sellingPoints.some(sp => activeSPs.has(sp))) return false;
+    if (searchTerm) {
+      const hay = (d.name + ' ' + d.developer + ' ' + d.location + ' ' + d.spDetail + ' ' + d.sellingPoints.join(' ')).toLowerCase();
+      if (!hay.includes(searchTerm)) return false;
+    }
+    return true;
+  });
+
+  showingCount.textContent = filtered.length;
+  const activeBits = [];
+  if (activeAreas.size) activeBits.push(`${activeAreas.size} AREA${activeAreas.size > 1 ? 'S' : ''}`);
+  if (activeSPs.size) activeBits.push(`${activeSPs.size} TAG${activeSPs.size > 1 ? 'S' : ''}`);
+  if (searchTerm) activeBits.push('SEARCH');
+  activeFiltersLabel.textContent = activeBits.length ? activeBits.join(' · ') + ' ACTIVE' : 'NO ACTIVE FILTERS';
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty">No complexes match the current filters.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(d => `
+    <article class="card">
+      <div class="card-area">${d.area}</div>
+      <h2 class="card-name">${d.name}</h2>
+      <div class="card-developer">${d.developer}</div>
+
+      <div class="card-section">
+        <div class="card-section-label">Location · Towers</div>
+        <div class="card-section-value">${d.location}<br/><strong>${d.towers}</strong></div>
+      </div>
+
+      <div class="card-section">
+        <div class="card-section-label">Price Range</div>
+        <div class="card-section-value">${d.priceRange}</div>
+      </div>
+
+      <div class="card-section">
+        <div class="card-section-label">Target Buyer</div>
+        <div class="card-section-value">${d.targetBuyer}</div>
+      </div>
+
+      <div class="card-section">
+        <div class="card-section-label">Unique Selling Point</div>
+        <div class="card-section-value">${d.spDetail}</div>
+      </div>
+
+      <div class="selling-points">
+        <div class="sp-label">Selling Point Tags</div>
+        <div class="sp-tags">
+          ${d.sellingPoints.map(sp => `<span class="sp-tag">${sp}</span>`).join('')}
+        </div>
+      </div>
+    </article>
+  `).join('');
+}
+
+render();
+</script>
+</body>
+</html>
